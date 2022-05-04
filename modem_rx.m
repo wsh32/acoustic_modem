@@ -94,11 +94,11 @@ title("Normalized signal");
 xlabel("Time (s)");
 ylabel("y_n");
 
-%%
+%% Decode message
 
 % convert to a string assuming that x_d is a vector of 1s and 0s
 % representing the decoded bits
-x_d = downsample(y_n, fs);
+x_d = downsample(y_n, fs, fs/2);
 
 figure(11);
 plot(x_d);
