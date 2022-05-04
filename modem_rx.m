@@ -1,9 +1,9 @@
 close all
 clear
 
-load long_modem_rx.mat
+load short_modem_rx.mat
 
-img_output_dir = "long_plots";
+img_output_dir = "short_plots";
 if ~exist(img_output_dir, 'dir')
     mkdir(img_output_dir);
 end
@@ -119,13 +119,17 @@ ylabel("y_n");
 
 saveas(gcf, fullfile(img_output_dir, "norm.png"))
 
+figure(11);
+plot_ft_rad(y_n, Fs);
+title("Normalized signal frequency plot")
+
+saveas(gcf, fullfile(img_output_dir, "norm_freq.png"))
+
 %% Decode message
 
 % convert to a string assuming that x_d is a vector of 1s and 0s
 % representing the decoded bits
 x_d = downsample(y_n, fs, fs/2);
 
-figure(11);
-plot(x_d);
 BitsToString(x_d)
 
