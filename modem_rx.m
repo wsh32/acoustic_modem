@@ -1,15 +1,22 @@
 close all
 clear
 
-load short_modem_rx.mat
+load long_modem_rx.mat
+
+img_output_dir = "long_plots";
+if ~exist(img_output_dir, 'dir')
+    mkdir(img_output_dir);
+end
 
 %% Plot Signal
 figure(1);
 t = (0:length(y_r)-1) / Fs;
 plot(t,y_r)
-title("Transmission over time")
+title("Received Signal over time")
 xlabel("Time (s)")
 ylabel("y_r")
+
+saveas(gcf, fullfile(img_output_dir, "signal.png"))
 
 %% Trim message
 % The received signal includes a bunch of samples from before the
@@ -34,9 +41,13 @@ title("Trimmed signal")
 xlabel("Time (s)")
 ylabel("y_t")
 
+saveas(gcf, fullfile(img_output_dir, "trimmed.png"))
+
 figure(3);
 plot_ft_rad(y_t, Fs);
 title("Trimmed signal frequency plot")
+
+saveas(gcf, fullfile(img_output_dir, "trimmed_freq.png"))
 
 %% Convolute with the cosine
 c = cos(2*pi*f_c/Fs * k);
@@ -48,9 +59,13 @@ title("Convolved signal");
 xlabel("Time (s)");
 ylabel("y_c");
 
+saveas(gcf, fullfile(img_output_dir, "convolved.png"))
+
 figure(5);
 plot_ft_rad(y_c, Fs);
 title("Convolved signal frequency plot")
+
+saveas(gcf, fullfile(img_output_dir, "convolved_freq.png"))
 
 %% Low pass filter
 W = 2 * pi * f_c;
@@ -63,9 +78,13 @@ title("Low pass filter signal");
 xlabel("Time (s)");
 ylabel("lpf");
 
+saveas(gcf, fullfile(img_output_dir, "lpf.png"))
+
 figure(7);
 plot_ft_rad(lpf, Fs);
 title("Low pass filter frequency plot")
+
+saveas(gcf, fullfile(img_output_dir, "lpf_freq.png"))
 
 %% Apply filter
 y_f = conv(y_c, lpf);
@@ -80,9 +99,13 @@ title("Filtered signal");
 xlabel("Time (s)");
 ylabel("y_f");
 
+saveas(gcf, fullfile(img_output_dir, "filtered.png"))
+
 figure(9);
 plot_ft_rad(y_f_trimmed, Fs);
 title("Filtered signal frequency plot")
+
+saveas(gcf, fullfile(img_output_dir, "filtered_freq.png"))
 
 %% Get bits in 0-1 form
 y_n = y_f_trimmed ./ abs(y_f_trimmed);
@@ -93,6 +116,8 @@ plot(t,y_n);
 title("Normalized signal");
 xlabel("Time (s)");
 ylabel("y_n");
+
+saveas(gcf, fullfile(img_output_dir, "norm.png"))
 
 %% Decode message
 
