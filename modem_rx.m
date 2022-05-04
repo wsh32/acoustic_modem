@@ -9,9 +9,9 @@ t = (0:length(y_r)-1) / Fs;
 plot(t,y_r)
 title("Transmission over time")
 xlabel("Time (s)")
-ylabel("Magnitude")
+ylabel("y_r")
 
-%%
+%% Trim message
 % The received signal includes a bunch of samples from before the
 % transmission started so we need discard these samples that occurred before
 % the transmission started. 
@@ -20,11 +20,87 @@ start_idx = find_start_of_signal(y_r,x_sync);
 % start_idx now contains the location in y_r where x_sync begins
 % we need to offset by the length of x_sync to only include the signal
 % we are interested in
-y_t = y_r(start_idx+length(x_sync):end); % y_t is the signal which starts at the beginning of the transmission
+fs = 100;  % Symbol period
+msg_length_samples = msg_length * 8 * fs;
+k = (0:msg_length_samples-1)';
+t = k / Fs;  % for plotting in seconds
 
+y_t = y_r(start_idx+length(x_sync):end);
+y_t = y_t(1:msg_length_samples);
 
+figure(2);
+plot(t, y_t);
+title("Trimmed signal")
+xlabel("Time (s)")
+ylabel("y_t")
+
+figure(3);
+plot_ft_rad(y_t, Fs);
+title("Trimmed signal frequency plot")
+
+%% Convolute with the cosine
+c = cos(2*pi*f_c/Fs * k);
+y_c = y_t .* c;
+
+figure(4);
+plot(t, y_c);
+title("Convolved signal");
+xlabel("Time (s)");
+ylabel("y_c");
+
+figure(5);
+plot_ft_rad(y_c, Fs);
+title("Convolved signal frequency plot")
+
+%% Low pass filter
+W = 2 * pi * f_c;
+t_lpf = (-100:99) * (1/Fs);  % this needs to be an even number for cleanliness
+lpf = W/pi * sinc(W/pi .* t_lpf);
+
+figure(6);
+plot(t_lpf, lpf);
+title("Low pass filter signal");
+xlabel("Time (s)");
+ylabel("lpf");
+
+figure(7);
+plot_ft_rad(lpf, Fs);
+title("Low pass filter frequency plot")
+
+%% Apply filter
+y_f = conv(y_c, lpf);
+
+% We want y_f to be the sme length as y_c, so trim the ends off (that get
+% added due to the length of the low pass filter
+y_f_trimmed = y_f(length(lpf)/2:end-length(lpf)/2);
+
+figure(8);
+plot(t,y_f_trimmed);
+title("Filtered signal");
+xlabel("Time (s)");
+ylabel("y_f");
+
+figure(9);
+plot_ft_rad(y_f_trimmed, Fs);
+title("Filtered signal frequency plot")
+
+%% Get bits in 0-1 form
+y_n = y_f_trimmed ./ abs(y_f_trimmed);
+y_n = (y_n + 1) / 2;
+
+figure(10);
+plot(t,y_n);
+title("Normalized signal");
+xlabel("Time (s)");
+ylabel("y_n");
+
+%%
 
 % convert to a string assuming that x_d is a vector of 1s and 0s
 % representing the decoded bits
-% BitsToString(x_d)
+x_d = downsample(y_n, fs);
+
+figure(11);
+plot(x_d);
+BitsToString(x_d)
 
